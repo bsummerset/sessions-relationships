@@ -34,7 +34,7 @@ const list = async (req, res) => {
         // Show this user's Todos
         const todos = await Todo.findAll({
             where: {
-                userId: id
+                userId: id // match the logged in user
             }
         });
         res.render('todos/list', {
