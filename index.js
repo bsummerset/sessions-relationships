@@ -65,7 +65,99 @@ app.use(requireLogin); // this middleware is protecting the rest
                        // of the routes that come after/below
                        // in index.js
 
-app.use('/todos', todoRouter)
+const { Todo } = require('./models');
+const {layout} = require('./utils');
+
+// Code for UPDATING todos
+app.get('/todos/:id',async (req,res) =>{
+    console.log(`The id of the todo to show is: ${req.params.id}`);
+    // res.send(req.params.id);
+    // get the spcific todo from the database!
+    // .findByPk() will retrieve by the id ("primary key")
+    const todo = await todo.findByPk(req.params.id);
+    console.log(todo.title);
+    res.render('todos/form', {
+        locals: {
+            title: 'Edit Todo',
+            todoTitle: todo.title,
+            isComplete: todo.isComplete
+        },
+        ...layout
+    })
+}) 
+app.post('/todos/:id',async (req,res)=>{
+    const {title} = req.body;
+    const {id} =  req.params;
+
+    // Pass .update() two argguments:
+    // 1. what attributes to change
+    // 2. which Todo to change
+    const updatedTodo = await Todo.update({
+        //key/value pairs to change
+        title,
+        isComplete = true
+    }, {
+        // a where-clause that says *which* Todo to update
+        where: {
+            id
+        }
+
+    });
+
+
+    res.send(`new info: ${title}`)
+
+
+
+// Code for DELETING todos
+app.get('/todos/:id/delete', (req,res) => {
+    // show them the delete form
+    // get the id from req.params
+    const {id} = req.params;
+    // get the Todo from the database
+    const todo = await Todo.findByPk(id);
+    //render the delet form, showing the title
+    res.send(`You want to delet ${todo.title}`);
+
+    res.render('todos/delete', {
+        locals: {
+            title: 'Delete Todo',
+            todoTitle: todo.title
+    },
+    ...layout
+    });
+});
+app.post ('/todos/:id/delete', (req,res)=>{
+     // process the delete form
+     const {id} = req.params;
+    //  res.send('you are going to delete...');
+     // delete from the database
+     const deleteTodo = await Todo.destroy({
+         where: {
+             id
+         }
+     });
+     console.log(deletedTodo);
+     res.redirect('/todos');
+})
+
+
+app.use('/todos', todoRouter);
+
+/*
+in order to edit a todo:
+
+-show the user a form with the title of a specific todo
+    - what URL shoudl they go to?
+        /todos/7
+        /todos/9
+        /todos/:id
+    - create a route
+    -create a controller function
+
+- when the user submits the form, change what's in the databse for that specific todo.
+*/
+
 
 // requireLogin() is a mini-middleware function
 // that runs before our (req, res) => {} handler
